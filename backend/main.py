@@ -17,7 +17,7 @@ import dotenv
 import json
 import boto3
 
-dotenv.load_dotenv("../.env")
+dotenv.load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 os.environ["AWS_ACCESS_KEY_ID"] = os.getenv("NEXT_PUBLIC_S3_ACCESS_KEY_ID")
 os.environ["AWS_SECRET_ACCESS_KEY"] = os.getenv("NEXT_PUBLIC_S3_SECRET_ACCESS_KEY")
@@ -43,6 +43,10 @@ app.add_middleware(
 class GetS3ContentRequestBody(BaseModel):
     s3_file_key: str
 
+@app.get("/")
+def health_check():
+    print("health check!")
+    return True
 
 @app.post("/api/get-s3-content")
 async def get_s3_content(body: GetS3ContentRequestBody):

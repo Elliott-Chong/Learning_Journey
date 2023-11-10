@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for lj-be on 2023-11-07T08:26:30Z
+# fly.toml app configuration file generated for lj-be on 2023-11-07T10:35:27Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -15,3 +15,11 @@ primary_region = "sin"
   auto_start_machines = true
   min_machines_running = 0
   processes = ["app"]
+
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/"
+
