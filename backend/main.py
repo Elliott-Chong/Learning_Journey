@@ -86,7 +86,8 @@ class GenerateRequestBody(BaseModel):
 
 @app.post("/api/generate")
 async def generate(body: GenerateRequestBody):
-    response = openai.ChatCompletion.create(
+    print("generating for content" + body.content[:10])
+    response = await openai.ChatCompletion.acreate(
         temperature=0.4,
         model="gpt-3.5-turbo",
         messages=[
