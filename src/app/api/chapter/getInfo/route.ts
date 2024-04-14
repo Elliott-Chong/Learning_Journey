@@ -1,6 +1,5 @@
-import { strict_output } from "@/lib/gpt";
+import { openai } from "@/lib/gpt";
 import {
-  getQuestionsFromTranscript,
   palmGetQuestionFromTranscript,
 } from "@/lib/palm";
 import { prisma } from "@/lib/prisma";
@@ -29,14 +28,28 @@ export async function POST(req: Request, res: Response) {
         { status: 404 }
       );
     }
-    const videoId = await searchYouTube(chapter.youtubeSearchQuery);
-    const transcript = await getTranscript(videoId);
-    const { summary }: { summary: string } = await strict_output(
-      "You are an AI capable of summarising a youtube transcript",
-      "summarise in 300 words or less and do not talk of the sponsors or anything unrelated to the main topic, also do not introduce what the summary is about.\n" +
-        transcript,
-      { summary: "summary of the transcript" }
-    );
+    const videoId = await searchYouTube(chapter.name);
+    const response = await openai.createChatCompletion({
+      temperature: 0.5,
+      model: 'gpt-4-turbo',
+      // @ts-ignore
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: "You are an AI capable of curating course content and only answer in JSON,"
+        },
+        {
+          role: "user", content: `
+        please provide a fake 200 word summary for a video on ${chapter.name}.
+        answer in {summary: 'your summary here'}
+        `}
+      ],
+    });
+    const data = await response.json()
+    let res = JSON.parse(data.choices[0].message?.content)
+    const summary = res.summary
+
     const mindmapCreation = axios.post(
       `${process.env.BACKEND_URL}/api/generate`,
       {
@@ -45,7 +58,7 @@ export async function POST(req: Request, res: Response) {
     );
 
     let questions = await palmGetQuestionFromTranscript(
-      transcript,
+      summary,
       chapter.name
     );
     if (!questions) {
